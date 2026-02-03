@@ -35,13 +35,6 @@ async def insurance_api(file: UploadFile = File(...)):
 
 @app.post("/generate-bill")
 async def bill_api(data: dict):
-    """
-    Expected JSON:
-    {
-        "damages": [...],
-        "insurance": {...}
-    }
-    """
     return generate_bill(data["damages"], data["insurance"])
 
 

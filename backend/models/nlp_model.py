@@ -9,10 +9,6 @@ qa_pipeline = pipeline(
 
 
 def ask(question: str, context: str, min_score: float = 0.25):
-    """
-    Ask a semantic question to the document.
-    Returns None if confidence is low.
-    """
     if not context or len(context.strip()) < 50:
         return None
 
@@ -30,9 +26,6 @@ def ask(question: str, context: str, min_score: float = 0.25):
 
 
 def parse_insurance(text: str):
-    """
-    Performs REAL NLP-based understanding of an insurance document.
-    """
 
     context = text.replace("\n", " ")
 

@@ -5,3 +5,4 @@ try1.png
 yolo26n.pt
 yolov8s.pt
 *.pdf
+__pycache__/
