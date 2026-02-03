@@ -6,3 +6,83 @@ yolo26n.pt
 yolov8s.pt
 *.pdf
 __pycache__/
+.venv/
+# ===============================
+# Flutter / Dart
+# ===============================
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Flutter version & plugin files
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# ===============================
+# Android
+# ===============================
+android/.gradle/
+android/.idea/
+android/local.properties
+android/key.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+
+# ===============================
+# iOS / macOS
+# ===============================
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner.xcworkspace
+ios/Runner.xcodeproj
+macos/Pods/
+macos/Flutter/ephemeral/
+
+# ===============================
+# Web
+# ===============================
+web/.dart_tool/
+web/build/
+
+# ===============================
+# Windows
+# ===============================
+windows/flutter/ephemeral/
+windows/.vs/
+windows/x64/
+windows/CMakeSettings.json
+
+# ===============================
+# Linux
+# ===============================
+linux/flutter/ephemeral/
+
+# ===============================
+# IDE / Editor
+# ===============================
+.idea/
+.vscode/
+*.iml
+
+# ===============================
+# Logs & OS files
+# ===============================
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Secrets (VERY IMPORTANT)
+# ===============================
+.env
+.env.*
+*.keystore
+*.jks

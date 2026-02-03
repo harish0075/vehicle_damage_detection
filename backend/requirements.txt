@@ -1,0 +1,39 @@
+# -----------------------------
+# Core backend
+# -----------------------------
+fastapi
+uvicorn[standard]
+python-multipart
+
+# -----------------------------
+# YOLO / Detection
+# -----------------------------
+ultralytics>=8.4.6
+opencv-python
+Pillow
+
+# -----------------------------
+# OCR
+# -----------------------------
+pytesseract
+
+# -----------------------------
+# PDF text extraction
+# -----------------------------
+pdfplumber
+pdf2image
+
+# -----------------------------
+# NLP (Insurance understanding)
+# -----------------------------
+transformers
+torch
+sentencepiece
+
+# -----------------------------
+# Utilities
+# -----------------------------
+numpy
+pandas
+pyyaml
+tqdm
