@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("../runs/detect/train/weights/best.pt")
+model = YOLO("../runs/detect/train14/weights/best.pt")
 
 def detect_damage(image_path):
     results = model(image_path)
