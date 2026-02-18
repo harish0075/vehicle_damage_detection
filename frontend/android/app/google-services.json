@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "769344764627",
+    "project_id": "vehicle-damage-detection-e4db5",
+    "storage_bucket": "vehicle-damage-detection-e4db5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:769344764627:android:9be6ce11428906912af226",
+        "android_client_info": {
+          "package_name": "com.vehiclebuddy.vehicle_health_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "769344764627-894sbs6n65r02qi76pfpdooqpb0j596i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsw-cmhh8wDuo245isJkU8dB-4bOCDzs4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "769344764627-894sbs6n65r02qi76pfpdooqpb0j596i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

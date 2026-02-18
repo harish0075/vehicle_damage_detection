@@ -1,18 +1,21 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import '../models/damage.dart';
 import '../services/api_service.dart';
 
 class DamageProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
 
   File? _selectedImage;
-  List<Damage> _detectedDamages = [];
+  List<Map<String, dynamic>> _detectedDamages = [];
+  double _imageWidth = 0;
+  double _imageHeight = 0;
   bool _isLoading = false;
   String? _error;
 
   File? get selectedImage => _selectedImage;
-  List<Damage> get detectedDamages => _detectedDamages;
+  List<Map<String, dynamic>> get detectedDamages => _detectedDamages;
+  double get imageWidth => _imageWidth;
+  double get imageHeight => _imageHeight;
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasDamages => _detectedDamages.isNotEmpty;
@@ -20,6 +23,8 @@ class DamageProvider with ChangeNotifier {
   void setSelectedImage(File? image) {
     _selectedImage = image;
     _detectedDamages = [];
+    _imageWidth = 0;
+    _imageHeight = 0;
     _error = null;
     notifyListeners();
   }
@@ -36,11 +41,16 @@ class DamageProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _detectedDamages = await _apiService.detectDamage(_selectedImage!);
+      final result = await _apiService.detectDamage(_selectedImage!);
+      _detectedDamages = List<Map<String, dynamic>>.from(result['damages'] as List);
+      _imageWidth = result['imageWidth'] as double;
+      _imageHeight = result['imageHeight'] as double;
       _error = null;
     } catch (e) {
       _error = e.toString();
       _detectedDamages = [];
+      _imageWidth = 0;
+      _imageHeight = 0;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -50,6 +60,8 @@ class DamageProvider with ChangeNotifier {
   void reset() {
     _selectedImage = null;
     _detectedDamages = [];
+    _imageWidth = 0;
+    _imageHeight = 0;
     _error = null;
     _isLoading = false;
     notifyListeners();

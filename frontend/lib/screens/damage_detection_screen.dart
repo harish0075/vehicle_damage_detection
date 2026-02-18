@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/damage_provider.dart';
-import '../providers/health_records_provider.dart';
+import '../providers/damage_history_provider.dart';
 import '../services/image_picker_service.dart';
 import '../theme/app_colors.dart';
 import '../widgets/common/custom_button.dart';
-import '../widgets/common/skeleton_loader.dart';
+import '../widgets/detection/bounding_box_painter.dart';
 
 class DamageDetectionScreen extends StatefulWidget {
   const DamageDetectionScreen({super.key});
@@ -20,89 +20,102 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Damage Detection'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<DamageProvider>().reset();
-            },
-          ),
-        ],
-      ),
-      body: Consumer<DamageProvider>(
-        builder: (context, damageProvider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Image Selection
-                if (damageProvider.selectedImage == null) ...[
-                  _buildImageSelectionCard(context),
-                ] else ...[
-                  _buildImagePreview(context, damageProvider.selectedImage!),
-                  const SizedBox(height: 16),
-                  
-                  // Detect Button
-                  if (!damageProvider.isLoading && !damageProvider.hasDamages)
-                    CustomButton(
-                      text: 'Detect Damage',
-                      icon: Icons.search,
-                      onPressed: () => _detectDamage(context),
-                    ),
-                ],
-
-                // Loading State
-                if (damageProvider.isLoading) ...[
-                  const SizedBox(height: 24),
-                  const Center(
-                    child: Column(
-                      children: [
-                        CircularProgressIndicator(),
-                        SizedBox(height: 16),
-                        Text('Analyzing image...'),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Error State
-                if (damageProvider.error != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.error.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.error),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            damageProvider.error!,
-                            style: const TextStyle(color: AppColors.error),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // Results
-                if (damageProvider.hasDamages) ...[
-                  const SizedBox(height: 24),
-                  _buildDamageResults(context, damageProvider),
-                ],
-              ],
+    return ChangeNotifierProvider(
+      create: (_) => DamageProvider(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Damage Detection'),
+          actions: [
+            Consumer<DamageProvider>(
+              builder: (context, provider, _) {
+                if (provider.selectedImage != null) {
+                  return IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      provider.reset();
+                    },
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
-          );
-        },
+          ],
+        ),
+        body: Consumer<DamageProvider>(
+          builder: (context, damageProvider, child) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Image Selection / Preview
+                  if (damageProvider.selectedImage == null) ...[
+                    _buildImageSelectionCard(context),
+                  ] else ...[
+                    if (damageProvider.hasDamages)
+                      _buildImageWithBoundingBoxes(context, damageProvider)
+                    else
+                      _buildImagePreview(context, damageProvider.selectedImage!),
+                    const SizedBox(height: 16),
+                    
+                    // Detect Button
+                    if (!damageProvider.isLoading && !damageProvider.hasDamages)
+                      CustomButton(
+                        text: 'Detect Damage',
+                        icon: Icons.search,
+                        onPressed: () => _detectDamage(context),
+                      ),
+                  ],
+
+                  // Loading State
+                  if (damageProvider.isLoading) ...[
+                    const SizedBox(height: 24),
+                    const Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Analyzing image...'),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Error State
+                  if (damageProvider.error != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: AppColors.error),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              damageProvider.error!,
+                              style: const TextStyle(color: AppColors.error),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  // Results
+                  if (damageProvider.hasDamages) ...[
+                    const SizedBox(height: 24),
+                    _buildDamageResults(context, damageProvider),
+                  ],
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -193,16 +206,34 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
     );
   }
 
+  Widget _buildImageWithBoundingBoxes(BuildContext context, DamageProvider provider) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: BoundingBoxImage(
+          imageFile: provider.selectedImage!,
+          damages: provider.detectedDamages,
+          imageWidth: provider.imageWidth,
+          imageHeight: provider.imageHeight,
+        ),
+      ),
+    );
+  }
+
   Widget _buildDamageResults(BuildContext context, DamageProvider provider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Detected Damages',
+          'Detected Damages (${provider.detectedDamages.length})',
           style: Theme.of(context).textTheme.headlineSmall,
         ),
         const SizedBox(height: 16),
-        ...provider.detectedDamages.map((damage) {
+        ...provider.detectedDamages.map((damageMap) {
+          final type = damageMap['type'] as String? ?? 'Unknown';
+          final severity = damageMap['severity'] as String? ?? 'Unknown';
+          final confidence = (damageMap['confidence'] as num?)?.toDouble() ?? 0.0;
+          
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             child: Padding(
@@ -214,7 +245,7 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: _getSeverityColor(damage.severity),
+                        color: _getSeverityColor(severity),
                         size: 28,
                       ),
                       const SizedBox(width: 12),
@@ -223,13 +254,13 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              damage.type,
+                              type,
                               style: Theme.of(context).textTheme.titleLarge,
                             ),
                             Text(
-                              'Severity: ${damage.severity}',
+                              'Severity: $severity',
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                    color: _getSeverityColor(damage.severity),
+                                    color: _getSeverityColor(severity),
                                   ),
                             ),
                           ],
@@ -239,15 +270,15 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
                   ),
                   const SizedBox(height: 12),
                   LinearProgressIndicator(
-                    value: damage.confidence,
+                    value: confidence,
                     backgroundColor: AppColors.surfaceLightColor,
-                    valueColor: AlwaysStoppedAnimation<Color>(
+                    valueColor: const AlwaysStoppedAnimation<Color>(
                       AppColors.electricBlue,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Confidence: ${(damage.confidence * 100).toStringAsFixed(1)}%',
+                    'Confidence: ${(confidence * 100).toStringAsFixed(1)}%',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -299,25 +330,40 @@ class _DamageDetectionScreenState extends State<DamageDetectionScreen> {
     await context.read<DamageProvider>().detectDamage();
   }
 
-  void _saveToTimeline(BuildContext context, DamageProvider provider) {
+  Future<void> _saveToTimeline(BuildContext context, DamageProvider provider) async {
     if (provider.detectedDamages.isNotEmpty) {
-      final recordsProvider = context.read<HealthRecordsProvider>();
+      final historyProvider = context.read<DamageHistoryProvider>();
       
-      for (final damage in provider.detectedDamages) {
-        recordsProvider.addDamageDetection(
-          damage,
+      print('🔍 Attempting to save detection...');
+      print('   Damages count: ${provider.detectedDamages.length}');
+      print('   Image path: ${provider.selectedImage?.path}');
+      print('   Image dimensions: ${provider.imageWidth} x ${provider.imageHeight}');
+      
+      try {
+        await historyProvider.saveDetection(
+          damages: provider.detectedDamages,
           imagePath: provider.selectedImage?.path,
+          imageWidth: provider.imageWidth,
+          imageHeight: provider.imageHeight,
         );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Detection saved to timeline'),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+
+        provider.reset();
+      } catch (e) {
+        print('❌ Save failed: $e');
+        if (mounted) {
+          _showError(context, 'Failed to save: ${e.toString()}');
+        }
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Damages saved to timeline'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-
-      provider.reset();
     }
   }
 
