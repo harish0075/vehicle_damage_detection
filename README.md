@@ -61,7 +61,6 @@ Key packages included:
 - Git
 - Firebase project setup
 - Android SDK (for Android development)
-- Xcode (for iOS development)
 
 ### Installation
 
@@ -185,7 +184,6 @@ This project is currently unlicensed. Please check with the repository owner for
 - Flutter team for the excellent framework
 - Firebase for backend services
 - ML/AI community for research and tools
-- All contributors and users
 
 ---
 
