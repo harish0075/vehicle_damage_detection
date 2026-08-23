@@ -1,7 +1,9 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
 import os
+from pathlib import Path
+from uuid import uuid4
 
 from models.damage_model import detect_damage
 
@@ -16,8 +18,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
 
 @app.get("/")
 async def root():
@@ -29,9 +31,14 @@ async def damage_api(file: UploadFile = File(...)):
     Detect vehicle damage from uploaded image.
     Returns damages with bounding boxes and image dimensions.
     """
-    path = f"{UPLOAD_DIR}/{file.filename}"
-    with open(path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=415, detail="Upload an image file.")
 
-    result = detect_damage(path)
-    return result
+    suffix = Path(file.filename or "upload.jpg").suffix or ".jpg"
+    path = UPLOAD_DIR / f"{uuid4()}{suffix}"
+    try:
+        with path.open("wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        return detect_damage(path)
+    finally:
+        path.unlink(missing_ok=True)

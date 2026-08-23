@@ -2,11 +2,13 @@
 class ApiConfig {
   ApiConfig._();
   
-  // TODO: Update this to match your FastAPI server URL
-  // For local development: 'http://10.0.2.2:8000' (Android emulator)
-  // For local development: 'http://localhost:8000' (iOS simulator/web)
-  // For production: 'https://your-api-domain.com'
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  // Set this at build/run time. Example:
+  // flutter build apk --dart-define=API_BASE_URL=https://your-api.onrender.com
+  // The fallback is only for Android-emulator local development.
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:8000',
+  );
   
   // API Endpoints
   static const String detectDamage = '/detect-damage';

@@ -86,3 +86,6 @@ Thumbs.db
 .env.*
 *.keystore
 *.jks
+
+# Runtime uploads are temporary and must not be committed.
+backend/uploads/

@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: vehicle-damage-api
+    runtime: docker
+    healthCheckPath: /
+    autoDeployTrigger: commit
